@@ -33,3 +33,22 @@ func BitsFromBytes(b []byte) []Bit {
 
 	return bits
 }
+
+func Uint32(b []Bit, e Endianess) uint32 {
+    if len(b) > 32 {
+        panic("expected 32 bits")
+    }
+
+    var x uint32
+    for i, bit := range b {
+        if bit == ONE {
+            if e == LITTLE_ENDIAN {
+                x |= 1 << i
+            } else {
+                x |= 1 << (31 - i)
+            }
+        }
+    }
+
+    return x
+}

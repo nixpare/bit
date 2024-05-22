@@ -114,6 +114,19 @@ func BitsNum[T Byter](b T) int {
 	}
 }
 
+func MinBitsNum[T Byter](b T, e Endianess) int {
+	bits := Bits(b, e)
+	var num int
+
+	for i, x := range bits {
+		if x == ONE {
+			num = i+1
+		}
+	}
+
+	return num
+}
+
 func ReverseEndianess(b []Bit) {
 	for i := 0; i < len(b)/2; i += 8 {
 		for j := 0; j < 8; j++ {
