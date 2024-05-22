@@ -71,7 +71,7 @@ func TestBitsAndReverse(t *testing.T) {
 			t.Errorf("error conversion from float32 to bit: from %v -> expected %v, found %v", d.from, d.to, result)
 		}
 
-		if reverse := ByterFromBits[float32](d.to); reverse != d.from {
+		if reverse := Convert[float32](d.to); reverse != d.from {
 			t.Errorf("error conversion from bits to float32: from %v -> expected %v, found %v", d.to, d.from, reverse)
 		}
 	}
@@ -100,7 +100,7 @@ func TestBitsAndReverse(t *testing.T) {
 			t.Errorf("error conversion from float64 to bit: from %b -> expected %v, found %v", d.from, d.to, result)
 		}
 
-		if reverse := ByterFromBits[float64](d.to); reverse != d.from {
+		if reverse := Convert[float64](d.to); reverse != d.from {
 			t.Errorf("error conversion from bits to float64: from %v -> expected %v, found %v", d.to, d.from, reverse)
 		}
 	}

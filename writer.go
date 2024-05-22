@@ -42,7 +42,7 @@ func (w *writerAdapter) flush(empty bool) (int, error) {
 
 	if len(w.b) >= 8 {
 		end := len(w.b) / 8 * 8
-		bytes := ByterFromBits[[]byte](w.b[:end])
+		bytes := Convert[[]byte](w.b[:end])
 
 		payload = append(payload, bytes...)
 		n += end
@@ -50,7 +50,7 @@ func (w *writerAdapter) flush(empty bool) (int, error) {
 	}
 
 	if empty && len(w.b) > 0 {
-		b := ByterFromBits[byte](w.b)
+		b := Convert[byte](w.b)
 		
 		payload = append(payload, b)
 		n += len(w.b)

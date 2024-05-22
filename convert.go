@@ -15,7 +15,7 @@ func IndexByte(b byte, pos int) Bit {
 	return ZERO
 }
 
-func ByterFromBits[T Byter](bits []Bit) T {
+func Convert[T Byter](bits []Bit) T {
     result := new(T)
 
 	switch r := any(result).(type) {
@@ -59,7 +59,7 @@ func ByterFromBits[T Byter](bits []Bit) T {
             }
         }
 	case *float32:
-		u := ByterFromBits[uint32](bits)
+		u := Convert[uint32](bits)
         *r = math.Float32frombits(u)
 
 	case *uint64:
@@ -75,124 +75,104 @@ func ByterFromBits[T Byter](bits []Bit) T {
             }
         }
 	case *float64:
-        u := ByterFromBits[uint64](bits)
+        u := Convert[uint64](bits)
         *r = math.Float64frombits(u)
 
 	case *[]uint8:
-        var b *uint8
         for i := 0; i < len(bits); i++ {
             if i % 8 == 0 {
                 *r = append(*r, 0)
-                b = &(*r)[len(*r)-1]
             }
 
             if bits[i] == ONE {
-                *b |= 1 << i % 8
+                (*r)[i/8] |= 1 << (i % 8)
             }
         }
-
 	case *[]int8:
-		var b *int8
-        for i := 0; i < len(bits); i++ {
+		for i := 0; i < len(bits); i++ {
             if i % 8 == 0 {
                 *r = append(*r, 0)
-                b = &(*r)[len(*r)-1]
             }
 
             if bits[i] == ONE {
-                *b |= 1 << i % 8
+                (*r)[i/8] |= 1 << (i % 8)
             }
         }
 
 	case *[]uint16:
-        var b *uint16
         for i := 0; i < len(bits); i++ {
             if i % 16 == 0 {
                 *r = append(*r, 0)
-                b = &(*r)[len(*r)-1]
             }
 
             if bits[i] == ONE {
-                *b |= 1 << i % 16
+                (*r)[i/16] |= 1 << (i % 16)
             }
         }
-
 	case *[]int16:
-		var b *int16
-        for i := 0; i < len(bits); i++ {
+		for i := 0; i < len(bits); i++ {
             if i % 16 == 0 {
                 *r = append(*r, 0)
-                b = &(*r)[len(*r)-1]
             }
 
             if bits[i] == ONE {
-                *b |= 1 << i % 16
+                (*r)[i/16] |= 1 << (i % 16)
             }
         }
 
 	case *[]uint32:
-        var b *uint32
         for i := 0; i < len(bits); i++ {
             if i % 32 == 0 {
                 *r = append(*r, 0)
-                b = &(*r)[len(*r)-1]
             }
 
             if bits[i] == ONE {
-                *b |= 1 << i % 32
+                (*r)[i/32] |= 1 << (i % 32)
             }
         }
-
 	case *[]int32:
-		var b *int32
-        for i := 0; i < len(bits); i++ {
+		for i := 0; i < len(bits); i++ {
             if i % 32 == 0 {
                 *r = append(*r, 0)
-                b = &(*r)[len(*r)-1]
             }
 
             if bits[i] == ONE {
-                *b |= 1 << i % 32
+                (*r)[i/32] |= 1 << (i % 32)
             }
         }
 	case *[]float32:
 		for i := 0; i < len(bits); i += 32 {
             end := min(i+32, len(bits))
 
-            u := ByterFromBits[uint32](bits[i:end])
+            u := Convert[uint32](bits[i:end])
             *r = append(*r, math.Float32frombits(u))
 		}
 
 	case *[]uint64:
-        var b *uint64
         for i := 0; i < len(bits); i++ {
             if i % 64 == 0 {
                 *r = append(*r, 0)
-                b = &(*r)[len(*r)-1]
             }
 
             if bits[i] == ONE {
-                *b |= 1 << i % 64
+                (*r)[i/64] |= 1 << (i % 64)
             }
         }
-
 	case *[]int64:
-		var b *int64
-        for i := 0; i < len(bits); i++ {
+		for i := 0; i < len(bits); i++ {
             if i % 64 == 0 {
                 *r = append(*r, 0)
-                b = &(*r)[len(*r)-1]
             }
 
             if bits[i] == ONE {
-                *b |= 1 << i % 64
+                (*r)[i/64] |= 1 << (i % 64)
             }
         }
 	case *[]float64:
-		for i := 0; i < len(bits); i += 32 {
-            end := min(i+32, len(bits))
+		for i := 0; i < len(bits); i += 64 {
+            end := min(i+64, len(bits))
 
-            u := ByterFromBits[uint64](bits[i:end])
+            u := Convert[uint64](bits[i:end])
             *r = append(*r, math.Float64frombits(u))
 		}
 
@@ -204,7 +184,7 @@ func ByterFromBits[T Byter](bits []Bit) T {
     return *result
 }
 
-func ByterFromBytes[T Byter](bytes []byte) T {
+func ConvertBytes[T Byter](bytes []byte) T {
     bits := Bits(bytes)
-    return ByterFromBits[T](bits)
+    return Convert[T](bits)
 }
