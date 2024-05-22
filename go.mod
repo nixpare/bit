@@ -1,3 +1,3 @@
-module github.com/nixpare/bit
+module github.com/nixpare/bitio
 
 go 1.22.2
