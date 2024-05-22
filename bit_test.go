@@ -51,7 +51,7 @@ func TestBitsFromByte(t *testing.T) {
 	}
 }
 
-func TestBits(t *testing.T) {
+func TestBitsAndReverse(t *testing.T) {
 	type testData32 struct {
 		from float32
 		to   []Bit
@@ -67,13 +67,12 @@ func TestBits(t *testing.T) {
 	}
 
 	for _, d := range data32 {
-		if result := Bits(d.from, LITTLE_ENDIAN); !slices.Equal(result, d.to) {
-			t.Errorf("error conversion from float32 to bit (le): from %b -> expected %v, found %v", d.from, d.to, result)
+		if result := Bits(d.from); !slices.Equal(result, d.to) {
+			t.Errorf("error conversion from float32 to bit: from %v -> expected %v, found %v", d.from, d.to, result)
 		}
 
-		ReverseEndianess(d.to)
-		if result := Bits(d.from, BIG_ENDIAN); !slices.Equal(result, d.to) {
-			t.Errorf("error conversion from float32 to bit (be): from %b -> expected %v, found %v", d.from, d.to, result)
+		if reverse := ByterFromBits[float32](d.to); reverse != d.from {
+			t.Errorf("error conversion from bits to float32: from %v -> expected %v, found %v", d.to, d.from, reverse)
 		}
 	}
 
@@ -97,13 +96,12 @@ func TestBits(t *testing.T) {
 	}
 
 	for _, d := range data64 {
-		if result := Bits(d.from, LITTLE_ENDIAN); !slices.Equal(result, d.to) {
-			t.Errorf("error conversion from float64 to bit (le): from %b -> expected %v, found %v", d.from, d.to, result)
+		if result := Bits(d.from); !slices.Equal(result, d.to) {
+			t.Errorf("error conversion from float64 to bit: from %b -> expected %v, found %v", d.from, d.to, result)
 		}
 
-		ReverseEndianess(d.to)
-		if result := Bits(d.from, BIG_ENDIAN); !slices.Equal(result, d.to) {
-			t.Errorf("error conversion from float64 to bit (be): from %b -> expected %v, found %v", d.from, d.to, result)
+		if reverse := ByterFromBits[float64](d.to); reverse != d.from {
+			t.Errorf("error conversion from bits to float64: from %v -> expected %v, found %v", d.to, d.from, reverse)
 		}
 	}
 }
