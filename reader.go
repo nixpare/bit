@@ -47,7 +47,7 @@ func (r *readerAdapter) ReadBit() (Bit, error) {
 		return r.ReadBit()
 	}
 
-	bit := BitFromByte(r.b, r.offset)
+	bit := IndexByte(r.b, r.offset)
 	r.offset++
 
 	return bit, r.err
@@ -79,7 +79,7 @@ func (r *readerAdapter) ReadBits(b []Bit) (int, error) {
 	var n int
 
 	for i := 0; i < len(b) && r.offset < 8; i++ {
-		b[i] = BitFromByte(r.b, r.offset)
+		b[i] = IndexByte(r.b, r.offset)
 		r.offset++
 		n++
 	}
@@ -99,7 +99,7 @@ func (r *readerAdapter) ReadBits(b []Bit) (int, error) {
 			}
 		}
 
-		b[n] = BitFromByte(r.b, r.offset)
+		b[n] = IndexByte(r.b, r.offset)
 		r.offset++
 	}
 

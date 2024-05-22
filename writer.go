@@ -1,6 +1,8 @@
 package bitio
 
-import "io"
+import (
+	"io"
+)
 
 type BitWriter interface {
 	WriteBit(Bit) error
@@ -38,30 +40,20 @@ func (w *writerAdapter) flush(empty bool) (int, error) {
 	var payload []byte
 	var n int
 
-	for len(w.b) >= 8 {
-		var p byte
-		for i := range 8 {
-			if w.b[i] == ONE {
-				p |= 1 << i
-			}
-		}
+	if len(w.b) >= 8 {
+		end := len(w.b) / 8 * 8
+		bytes := ByterFromBits[[]byte](w.b[:end])
 
-		payload = append(payload, p)
-		n += 8
-		w.b = w.b[8:]
+		payload = append(payload, bytes...)
+		n += end
+		w.b = w.b[end:]
 	}
 
 	if empty && len(w.b) > 0 {
+		b := ByterFromBits[byte](w.b)
+		
+		payload = append(payload, b)
 		n += len(w.b)
-
-		var p byte
-		for i := range len(w.b) {
-			if w.b[i] == ONE {
-				p |= 1 << i
-			}
-		}
-
-		payload = append(payload, p)
 		w.b = w.b[:0]
 	}
 
@@ -70,7 +62,7 @@ func (w *writerAdapter) flush(empty bool) (int, error) {
 }
 
 func (w *writerAdapter) Write(b []byte) (int, error) {
-	return w.WriteBits(BitsFromBytes(b))
+	return w.WriteBits(Bits(b))
 }
 
 func (w *writerAdapter) Close() error {

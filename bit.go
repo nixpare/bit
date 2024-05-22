@@ -63,7 +63,7 @@ const (
 	BIG_ENDIAN
 )
 
-func Bits[T Byter](b ...T) []Bit {
+func Bits[T Byter](b T) []Bit {
 	var from []byte
 
 	switch b := any(b).(type) {
@@ -141,13 +141,21 @@ func Bits[T Byter](b ...T) []Bit {
 		}
 
 	default:
-		panic("not implemented")
+		panic("type not implemented")
 
 	}
 
-	bits := make([]Bit, 0, len(from)*8)
-	for _, b := range from {
-		bits = append(bits, BitsFromByte(b)...)
+	
+
+	bits := make([]Bit, len(from) * 8)
+	for i, b := range from {
+		for j := range 8 {
+			if (b >> j) & 1 == 1 {
+				bits[i*8 + j] = ONE
+			} else {
+				bits[i*8 + j] = ZERO
+			}
+		}
 	}
 	return bits
 }
@@ -191,7 +199,7 @@ func BitsNum[T Byter](b T) int {
 		return 64 * len(b)
 	
 	default:
-		panic("not implemented")
+		panic("type not implemented")
 	}
 }
 

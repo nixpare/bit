@@ -24,7 +24,7 @@ func TestBitFromByte(t *testing.T) {
 	}
 
 	for _, d := range data {
-		if result := BitFromByte(d.from, d.pos); result != d.to {
+		if result := IndexByte(d.from, d.pos); result != d.to {
 			t.Errorf("error conversion from byte to bit: from %b (pos %d) -> expected %v, found %v", d.from, d.pos, d.to, result)
 		}
 	}
@@ -45,7 +45,7 @@ func TestBitsFromByte(t *testing.T) {
 	}
 
 	for _, d := range data {
-		if result := BitsFromByte(d.from); !slices.Equal(result, d.to) {
+		if result := Bits(d.from); !slices.Equal(result, d.to) {
 			t.Errorf("error conversion from byte to bit: from %b -> expected %v, found %v", d.from, d.to, result)
 		}
 	}
