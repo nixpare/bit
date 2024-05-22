@@ -133,8 +133,7 @@ func ReverseEndianess(b []Bit) {
 	for i := 0; i < len(b)/2; i += 8 {
 		for j := 0; j < 8; j++ {
 			left, right := i+j, len(b)-(i+8)+j
-			println(left, right)
-
+			
 			b[left], b[right] = b[right], b[left]
 		}
 	}
