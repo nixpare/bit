@@ -2,7 +2,6 @@ package bitio
 
 import (
 	"math"
-	"slices"
 )
 
 type Bit bool
@@ -42,8 +41,19 @@ type EightByter interface {
 	~uint64 | ~int64 | ~float64
 }
 
-type Byter interface {
+type SingleByter interface {
 	OneByter | TwoByter | FourByter | EightByter
+}
+
+type MultiByter interface {
+	~[]uint8 | ~[]int8 |
+	~[]uint16 | ~[]int16 |
+	~[]uint32 | ~[]int32 | ~[]float32 |
+	~[]uint64 | ~[]int64 | ~[]float64
+}
+
+type Byter interface {
+	SingleByter | MultiByter
 }
 
 type Endianess int
@@ -53,10 +63,11 @@ const (
 	BIG_ENDIAN
 )
 
-func Bits[T Byter](b T, e Endianess) []Bit {
+func Bits[T Byter](b ...T) []Bit {
 	var from []byte
 
 	switch b := any(b).(type) {
+
 	case uint8:
 		from = []byte{byte(b)}
 	case int8:
@@ -82,10 +93,56 @@ func Bits[T Byter](b T, e Endianess) []Bit {
 	case float64:
 		u := math.Float64bits(b)
 		from = []byte{byte(u), byte(u >> 8), byte(u >> 16), byte(u >> 24), byte(u >> 32), byte(u >> 40), byte(u >> 48), byte(u >> 56)}
-	}
 
-	if e == BIG_ENDIAN {
-		slices.Reverse(from)
+	case []uint8:
+		for _, x := range b {
+			from = append(from, byte(x))
+		}
+	case []int8:
+		for _, x := range b {
+			from = append(from, byte(x))
+		}
+
+	case []uint16:
+		for _, x := range b {
+			from = append(from, byte(x), byte(x >> 8))
+		}
+	case []int16:
+		for _, x := range b {
+			from = append(from, byte(x), byte(x >> 8))
+		}
+
+	case []uint32:
+		for _, x := range b {
+			from = append(from, byte(x), byte(x >> 8), byte(x >> 16), byte(x >> 24))
+		}
+	case []int32:
+		for _, x := range b {
+			from = append(from, byte(x), byte(x >> 8), byte(x >> 16), byte(x >> 24))
+		}
+	case []float32:
+		for _, x := range b {
+			u := math.Float32bits(x)
+			from = append(from, byte(u), byte(u >> 8), byte(u >> 16), byte(u >> 24))
+		}
+
+	case []uint64:
+		for _, x := range b {
+			from = append(from, byte(x), byte(x >> 8), byte(x >> 16), byte(x >> 24), byte(x >> 32), byte(x >> 40), byte(x >> 48), byte(x >> 56))
+		}
+	case []int64:
+		for _, x := range b {
+			from = append(from, byte(x), byte(x >> 8), byte(x >> 16), byte(x >> 24), byte(x >> 32), byte(x >> 40), byte(x >> 48), byte(x >> 56))
+		}
+	case []float64:
+		for _, x := range b {
+			u := math.Float64bits(x)
+			from = append(from, byte(u), byte(u >> 8), byte(u >> 16), byte(u >> 24), byte(u >> 32), byte(u >> 40), byte(u >> 48), byte(u >> 56))
+		}
+
+	default:
+		panic("not implemented")
+
 	}
 
 	bits := make([]Bit, 0, len(from)*8)
@@ -96,7 +153,7 @@ func Bits[T Byter](b T, e Endianess) []Bit {
 }
 
 func BitsNum[T Byter](b T) int {
-	switch any(b).(type) {
+	switch b := any(b).(type) {
 	case uint8, int8:
 		return 8
 
@@ -108,14 +165,38 @@ func BitsNum[T Byter](b T) int {
 
 	case uint64, int64, float64:
 		return 64
+
+	case []uint8:
+		return 8 * len(b)
+	case []int8:
+		return 8 * len(b)
+
+	case []uint16:
+		return 16 * len(b)
+	case []int16:
+		return 16 * len(b)
+
+	case []uint32:
+		return 32 * len(b)
+	case []int32:
+		return 32
+	case []float32:
+		return 32
+
+	case []uint64:
+		return 64 * len(b)
+	case []int64:
+		return 64 * len(b)
+	case []float64:
+		return 64 * len(b)
 	
 	default:
-		panic("unreachable")
+		panic("not implemented")
 	}
 }
 
-func MinBitsNum[T Byter](b T, e Endianess) int {
-	bits := Bits(b, e)
+func MinBitsNum[T Byter](b T) int {
+	bits := Bits(b)
 	var num int
 
 	for i, x := range bits {
