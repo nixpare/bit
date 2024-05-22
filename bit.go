@@ -145,8 +145,6 @@ func Bits[T Byter](b T) []Bit {
 
 	}
 
-	
-
 	bits := make([]Bit, len(from) * 8)
 	for i, b := range from {
 		for j := range 8 {
@@ -157,6 +155,16 @@ func Bits[T Byter](b T) []Bit {
 			}
 		}
 	}
+	return bits
+}
+
+func MultiBits[T Byter](b []T) []Bit {
+	var tmp T
+	bits := make([]Bit, 0, BitsNum(tmp) * len(b))
+	for _, x := range b {
+		bits = append(bits, Bits(x)...)
+	}
+
 	return bits
 }
 
