@@ -227,13 +227,3 @@ func MinBitsNum[T Byter](b T) int {
 
 	return num
 }
-
-func ReverseEndianess(b []Bit) {
-	for i := 0; i < len(b)/2; i += 8 {
-		for j := 0; j < 8; j++ {
-			left, right := i+j, len(b)-(i+8)+j
-			
-			b[left], b[right] = b[right], b[left]
-		}
-	}
-}
