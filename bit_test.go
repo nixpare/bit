@@ -105,3 +105,52 @@ func TestBitsAndReverse(t *testing.T) {
 		}
 	}
 }
+
+func TestBitsReverseEndianess(t *testing.T) {
+	type testData struct {
+		from []Bit
+		n    int
+		to   []Bit
+	}
+
+	data := []testData{
+		{
+			from: []Bit{ONE, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO}, n: 1,
+			to: []Bit{ONE, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO},
+		},
+		{
+			from: []Bit{ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ONE}, n: 2,
+			to: []Bit{
+				ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO,
+				ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ONE,
+			},
+		},
+		{
+			from: []Bit{ONE, ZERO, ONE, ZERO, ONE, ZERO, ONE, ZERO, ONE, ZERO}, n: 2,
+			to: []Bit{
+				ONE, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO,
+				ONE, ZERO, ONE, ZERO, ONE, ZERO, ONE, ZERO,
+			},
+		},
+		{
+			from: []Bit{
+				ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ONE,
+				ONE, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO,
+				ONE, ZERO, ONE, ZERO, ONE, ZERO, ONE, ZERO,
+				ONE, ONE, ZERO, ZERO, ZERO, ONE,
+			}, n: 4,
+			to: []Bit{
+				ONE, ONE, ZERO, ZERO, ZERO, ONE, ZERO, ZERO,
+				ONE, ZERO, ONE, ZERO, ONE, ZERO, ONE, ZERO,
+				ONE, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO,
+				ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ONE,
+			},
+		},
+	}
+
+	for _, d := range data {
+		if result := ReverseEndianess(d.from, d.n); !slices.Equal(result, d.to) {
+			t.Errorf("error reversing endianess: from %v -> expected %v, found %v", d.from, d.to, result)
+		}
+	}
+}

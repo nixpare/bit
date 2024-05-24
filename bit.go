@@ -227,3 +227,36 @@ func MinBitsNum[T Byter](b T) int {
 
 	return num
 }
+
+func ReverseEndianess(b []Bit, nBytes int) []Bit {
+	if nBytes == 1 {
+		return b
+	}
+
+	if nBytes != 2 && math.Sqrt(float64(nBytes)) != math.Floor(math.Sqrt(float64(nBytes))) {
+		panic("nBytes must be a power of 2")
+	}
+
+	size := len(b) / 8
+	if len(b) % 8 != 0 {
+		size++
+	}
+
+	if size < nBytes {
+		size = nBytes
+	}
+
+	size *= 8
+
+	reversed := make([]Bit, size)
+	for i, j, k := 0, size, 0; i < len(b); i, k = i+1, k+1 {
+		if i % 8 == 0 {
+			k = 0
+			j -= 8
+		}
+
+		reversed[j + k] = b[i]
+	}
+
+	return reversed
+}
