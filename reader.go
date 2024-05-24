@@ -5,24 +5,13 @@ import (
 )
 
 type BitReader interface {
-	ReadBit() (Bit, error)
-	ReadBits([]Bit) (int, error)
-	Read([]byte) (int, error)
+	BitRead([]Bit) (int, error)
+	io.Reader
 }
-
-type stage int
-
-const (
-	fetch stage = iota
-	use
-	end
-)
 
 type readerAdapter struct {
 	rd     io.Reader
-	stage  stage
-	offset int
-	b      byte
+	buf    []Bit
 	err    error
 }
 
@@ -30,79 +19,28 @@ func NewBitReader(rd io.Reader) BitReader {
 	return &readerAdapter{rd: rd}
 }
 
-func (r *readerAdapter) ReadBit() (Bit, error) {
-	if r.stage == end {
-		return ZERO, r.err
-	}
-
-	if r.stage == fetch {
-		r.fetch()
-		if r.err != nil {
-			r.stage = end
-		} else {
-			r.stage++
-		}
-	} else if r.offset == 8 {
-		r.offset = 0
-		r.stage = fetch
-
-		return r.ReadBit()
-	}
-
-	bit := IndexByte(r.b, r.offset)
-	r.offset++
-
-	return bit, r.err
-}
-
-func (r *readerAdapter) ReadBits(b []Bit) (int, error) {
-	if r.stage == end {
-		return 0, r.err
-	}
-
+func (r *readerAdapter) BitRead(b []Bit) (int, error) {
 	if len(b) == 0 {
 		return 0, nil
 	}
 
-	if r.stage == fetch {
-		r.fetch()
-		if r.err != nil {
-			r.stage = end
-		} else {
-			r.stage++
-		}
-	} else if r.offset == 8 {
-		r.offset = 0
-		r.stage = fetch
-
-		return r.ReadBits(b)
+	if len(r.buf) == 0 && r.err != nil {
+		return 0, r.err
 	}
 
 	var n int
-
-	for i := 0; i < len(b) && r.offset < 8; i++ {
-		b[i] = IndexByte(r.b, r.offset)
-		r.offset++
-		n++
-	}
-
-	if n == len(b) {
-		return n, r.err
-	}
-
-	for ; n < len(b); n++ {
-		if r.offset == 8 {
-			r.offset = 0
-
-			r.fetch()
+	for n < len(b) {
+		if len(r.buf) == 0 {
 			if r.err != nil {
-				r.stage = end
 				return n, r.err
 			}
+
+			r.fetch()
 		}
 
-		b[n] = IndexByte(r.b, r.offset)
-		r.offset++
+		read := copy(b[n:], r.buf)
+		r.buf = r.buf[read:]
+		n += read
 	}
 
 	return n, r.err
@@ -111,20 +49,49 @@ func (r *readerAdapter) ReadBits(b []Bit) (int, error) {
 func (r *readerAdapter) fetch() {
 	var buf [1]byte
 	_, r.err = r.rd.Read(buf[:])
-	r.b = buf[0]
+	r.buf = Bits(buf[0])
 }
 
-func (r *readerAdapter) Read([]byte) (int, error) {
-	panic("To be implemented")
+func (r *readerAdapter) Read(b []byte) (int, error) {
+	bytes := make([]byte, len(b))
+	n, err := r.rd.Read(bytes)
+
+	r.buf = append(r.buf, Bits(bytes)...)
+	for i := range b {
+		b[i] = Convert[byte](r.buf[:8])
+		r.buf = r.buf[8:]
+	}
+
+	return n, err
 }
 
-func ReadByter[T Byter](r BitReader) (x T, n int, err error) {
+type ByterReader[T Byter] struct {
+	rd BitReader
+}
+
+func NewByterReader[T Byter](r io.Reader) *ByterReader[T] {
+	if r, ok := r.(BitReader); ok {
+		return &ByterReader[T]{ rd: r }
+	}
+
+	return &ByterReader[T]{ rd: NewBitReader(r) }
+}
+
+func (r *ByterReader[T]) ByterRead(w BitReader) (x T, n int, err error) {
 	buf := make([]Bit, Size(x))
-	n, err = r.ReadBits(buf)
+	n, err = r.BitRead(buf)
 	if err != nil {
 		return
 	}
 
 	x = Convert[T](buf)
 	return
+}
+
+func (r *ByterReader[T]) BitRead(b []Bit) (int, error) {
+	return r.rd.BitRead(b)
+}
+
+func (r *ByterReader[T]) Read(b []byte) (int, error) {
+	return r.rd.Read(b)
 }

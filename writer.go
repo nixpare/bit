@@ -5,12 +5,9 @@ import (
 )
 
 type BitWriter interface {
-	WriteBit(Bit) error
-	WriteBits([]Bit) (int, error)
+	BitWrite(...Bit) (int, error)
 	Flush() (int, error)
-
-	Write([]byte) (int, error)
-	Close() error
+	io.WriteCloser
 }
 
 type writerAdapter struct {
@@ -18,16 +15,11 @@ type writerAdapter struct {
 	b  []Bit
 }
 
-func NewBitWriter(wr io.Writer) BitWriter {
-	return &writerAdapter{wr: wr}
+func NewBitWriter(w io.Writer) BitWriter {
+	return &writerAdapter{wr: w}
 }
 
-func (w *writerAdapter) WriteBit(b Bit) error {
-	_, err := w.WriteBits([]Bit{b})
-	return err
-}
-
-func (w *writerAdapter) WriteBits(b []Bit) (int, error) {
+func (w *writerAdapter) BitWrite(b ...Bit) (int, error) {
 	w.b = append(w.b, b...)
 	return w.flush(false)
 }
@@ -62,10 +54,45 @@ func (w *writerAdapter) flush(empty bool) (int, error) {
 }
 
 func (w *writerAdapter) Write(b []byte) (int, error) {
-	return w.WriteBits(Bits(b))
+	n, err := w.BitWrite(Bits(b)...)
+	n /= 8
+	return n, err 
 }
 
 func (w *writerAdapter) Close() error {
 	_, err := w.flush(true)
 	return err
+}
+
+type ByterWriter[T Byter] struct {
+	wr BitWriter
+}
+
+func NewByterWriter[T Byter](w io.Writer) *ByterWriter[T] {
+	if w, ok := w.(BitWriter); ok {
+		return &ByterWriter[T]{ wr: w }
+	}
+
+	return &ByterWriter[T]{ wr: NewBitWriter(w) }
+}
+
+func (w *ByterWriter[T]) ByterWrite(x T) (int, error) {
+	b := Bits(x)
+	return w.BitWrite(b...)
+}
+
+func (w *ByterWriter[T]) BitWrite(b ...Bit) (int, error) {
+	return w.wr.BitWrite(b...)
+}
+
+func (w *ByterWriter[T]) Flush() (int, error) {
+	return w.wr.Flush()
+}
+
+func (w *ByterWriter[T]) Write(b []byte) (int, error) {
+	return w.wr.Write(b)
+}
+
+func (w *ByterWriter[T]) Close() error {
+	return w.wr.Close()
 }

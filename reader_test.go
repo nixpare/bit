@@ -26,22 +26,21 @@ func TestBitReaderReadBit(t *testing.T) {
 	for _, d := range data {
 		rd := NewBitReader(bytes.NewReader(d.from))
 
-		result, err := rd.ReadBit()
+		var buf [1]Bit
 		for i := 0; i < len(d.from)*8; i++ {
+			_, err := rd.BitRead(buf[:])
 			if err != nil {
 				t.Errorf("error reading bit %d from %v -> %v", i, d.from, err)
 			}
 
-			if i < len(d.to) && result != d.to[i] {
-				t.Errorf("error reading bit %d from %v -> expected %v, found %v", i, d.from, d.to[i], result)
+			if i < len(d.to) && buf[0] != d.to[i] {
+				t.Errorf("error reading bit %d from %v -> expected %v, found %v", i, d.from, d.to[i], buf[0])
 			}
-
-			result, err = rd.ReadBit()
 		}
 
-		result, err = rd.ReadBit()
-		if result != ZERO || !errors.Is(err, io.EOF) {
-			t.Errorf("expected (ZERO, io.EOF) at the end of read, found (%v, %v)", result, err)
+		_, err := rd.BitRead(buf[:])
+		if buf[0] != ZERO || !errors.Is(err, io.EOF) {
+			t.Errorf("expected (ZERO, io.EOF) at the end of read, found (%v, %v)", buf[0], err)
 		}
 	}
 }
@@ -76,7 +75,7 @@ func TestBitReaderReadBits(t *testing.T) {
 
 		for i, read := range d.reads {
 			buf := make([]Bit, len(read))
-			n, err := rd.ReadBits(buf)
+			n, err := rd.BitRead(buf)
 			if err != nil {
 				t.Errorf("error read n°%d of bits from %v -> %v", i, d.from, err)
 			}

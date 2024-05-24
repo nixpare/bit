@@ -36,7 +36,7 @@ func TestBitWriterWriteBits(t *testing.T) {
 		for _, write := range d.writes {
 			nWrites += len(write)
 
-			n2, err := wr.WriteBits(write)
+			n2, err := wr.BitWrite(write...)
 			n += n2
 			if err != nil {
 				t.Errorf("error writing bits %v -> %v", write, err)
