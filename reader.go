@@ -77,7 +77,7 @@ func NewByterReader[T Byter](r io.Reader) *ByterReader[T] {
 	return &ByterReader[T]{ rd: NewBitReader(r) }
 }
 
-func (r *ByterReader[T]) ByterRead(w BitReader) (x T, n int, err error) {
+func (r *ByterReader[T]) ByterRead() (x T, n int, err error) {
 	buf := make([]Bit, Size(x))
 	n, err = r.BitRead(buf)
 	if err != nil {
@@ -94,4 +94,15 @@ func (r *ByterReader[T]) BitRead(b []Bit) (int, error) {
 
 func (r *ByterReader[T]) Read(b []byte) (int, error) {
 	return r.rd.Read(b)
+}
+
+func ByterRead[T Byter](r BitReader) (x T, n int, err error) {
+	buf := make([]Bit, Size(x))
+	n, err = r.BitRead(buf)
+	if err != nil {
+		return
+	}
+
+	x = Convert[T](buf)
+	return
 }

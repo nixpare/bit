@@ -96,3 +96,8 @@ func (w *ByterWriter[T]) Write(b []byte) (int, error) {
 func (w *ByterWriter[T]) Close() error {
 	return w.wr.Close()
 }
+
+func ByterWrite[T Byter](w *ByterWriter[T], x T) (int, error) {
+	b := Bits(x)
+	return w.BitWrite(b...)
+}
