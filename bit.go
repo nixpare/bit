@@ -159,8 +159,7 @@ func Bits[T Byter](b T) []Bit {
 }
 
 func MultiBits[T Byter](b []T) []Bit {
-	var tmp T
-	bits := make([]Bit, 0, BitsNum(tmp) * len(b))
+	bits := make([]Bit, 0, ByterSize[T]() * len(b))
 	for _, x := range b {
 		bits = append(bits, Bits(x)...)
 	}
@@ -168,7 +167,12 @@ func MultiBits[T Byter](b []T) []Bit {
 	return bits
 }
 
-func BitsNum[T Byter](b T) int {
+func ByterSize[T Byter]() int {
+	var tmp T
+	return Size(tmp)
+}
+
+func Size[T Byter](b T) int {
 	switch b := any(b).(type) {
 	case uint8, int8:
 		return 8
