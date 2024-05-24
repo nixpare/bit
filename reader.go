@@ -1,6 +1,8 @@
 package bitio
 
-import "io"
+import (
+	"io"
+)
 
 type BitReader interface {
 	ReadBit() (Bit, error)
@@ -114,4 +116,15 @@ func (r *readerAdapter) fetch() {
 
 func (r *readerAdapter) Read([]byte) (int, error) {
 	panic("To be implemented")
+}
+
+func ReadByter[T Byter](r BitReader) (x T, n int, err error) {
+	buf := make([]Bit, Size(x))
+	n, err = r.ReadBits(buf)
+	if err != nil {
+		return
+	}
+
+	x = Convert[T](buf)
+	return
 }
